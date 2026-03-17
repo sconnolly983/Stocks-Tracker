@@ -18,121 +18,171 @@
     --text:    #d4e8f0;
     --muted:   #4a6878;
   }
+
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: 'Syne', sans-serif; min-height: 100vh; padding: 0 24px 60px; overflow-x: hidden; }
-  body::before { content: ''; position: fixed; inset: 0; background-image: linear-gradient(rgba(0,170,255,.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0,170,255,.03) 1px, transparent 1px); background-size: 40px 40px; pointer-events: none; z-index: 0; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Syne', sans-serif;
+    min-height: 100vh;
+    padding: 0 24px 60px;
+  }
+
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,170,255,0.03) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,170,255,0.03) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none; z-index: 0;
+  }
+
   .wrap { position: relative; z-index: 1; max-width: 1300px; margin: 0 auto; }
 
-  header { display: flex; align-items: center; justify-content: space-between; padding: 28px 0 24px; border-bottom: 1px solid var(--border); margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+  /* Header */
+  header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 28px 0 24px;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 24px;
+    flex-wrap: wrap; gap: 12px;
+  }
   .logo { font-family: 'Space Mono', monospace; font-size: 22px; font-weight: 700; color: #fff; }
   .logo span { color: var(--green); }
   .live-badge { display: flex; align-items: center; gap: 8px; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 2s ease-in-out infinite; }
   @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
 
-  .key-banner { background: var(--surface); border: 1px solid var(--amber); border-radius: 8px; padding: 16px 20px; margin-bottom: 20px; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
-  .key-banner.ok { border-color: var(--green); }
-  .key-label { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--amber); letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; }
-  .key-banner.ok .key-label { color: var(--green); }
-  .key-banner input { flex: 1; min-width: 200px; background: var(--bg); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 13px; padding: 8px 13px; border-radius: 5px; outline: none; transition: border-color .2s; }
+  /* API Key banner */
+  .key-banner {
+    background: var(--surface);
+    border: 1px solid var(--amber);
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 20px;
+    display: flex; align-items: center; flex-wrap: wrap; gap: 12px;
+  }
+  .key-banner.active { border-color: var(--green); }
+  .key-label { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 1px; text-transform: uppercase; white-space: nowrap; color: var(--amber); }
+  .key-banner.active .key-label { color: var(--green); }
+  .key-banner input {
+    flex: 1; min-width: 220px;
+    background: var(--bg); border: 1px solid var(--border); color: var(--text);
+    font-family: 'Space Mono', monospace; font-size: 13px;
+    padding: 9px 14px; border-radius: 5px; outline: none;
+    transition: border-color .2s;
+  }
   .key-banner input:focus { border-color: var(--amber); }
-  .key-btn { background: var(--amber); color: #080c10; border: none; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 1px; text-transform: uppercase; padding: 8px 18px; border-radius: 5px; cursor: pointer; transition: opacity .15s; white-space: nowrap; }
-  .key-btn:hover { opacity: .85; }
-  .key-hint { width: 100%; font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); margin-top: -4px; line-height: 1.8; }
+  .key-banner button {
+    background: var(--amber); color: #080c10; border: none;
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800;
+    letter-spacing: 1px; text-transform: uppercase;
+    padding: 9px 20px; border-radius: 5px; cursor: pointer;
+    transition: opacity .15s; white-space: nowrap;
+  }
+  .key-banner button:hover { opacity: .85; }
+  .key-active-msg { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--green); letter-spacing: 1px; display: none; }
+  .key-hint { width: 100%; font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); line-height: 1.8; }
   .key-hint a { color: var(--blue); text-decoration: none; }
   .key-hint a:hover { text-decoration: underline; }
 
-  .mbar { display: flex; gap: 20px; margin-bottom: 20px; padding: 10px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); align-items: center; flex-wrap: wrap; letter-spacing: .5px; }
+  /* Market bar */
+  .mbar {
+    display: flex; gap: 20px; margin-bottom: 20px;
+    padding: 10px 16px;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 6px;
+    font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted);
+    align-items: center; flex-wrap: wrap; letter-spacing: .5px;
+  }
   .mbar .v { color: var(--text); }
   .mbar .sep { color: var(--border); }
-  .calls-ok  { color: var(--green)  !important; }
-  .calls-low { color: var(--amber)  !important; }
-  .calls-out { color: var(--red)    !important; }
 
-  .range-bar { display: flex; align-items: center; gap: 6px; margin-bottom: 20px; flex-wrap: wrap; }
-  .range-label { font-family: 'Space Mono', monospace; font-size: 10px; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-right: 4px; }
-  .range-btn { background: none; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; letter-spacing: 1px; padding: 7px 16px; border-radius: 5px; cursor: pointer; transition: all .15s; }
-  .range-btn:hover { border-color: var(--blue); color: var(--blue); }
-  .range-btn.active { background: var(--blue); border-color: var(--blue); color: #080c10; }
-
+  /* Add row */
   .add-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
-  .add-row input { background: var(--surface); border: 1px solid var(--border); color: var(--text); font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; padding: 12px 16px; border-radius: 6px; outline: none; width: 200px; transition: border-color .2s, box-shadow .2s; }
+  .add-row input {
+    background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700;
+    letter-spacing: 2px; text-transform: uppercase;
+    padding: 12px 16px; border-radius: 6px; outline: none; width: 210px;
+    transition: border-color .2s, box-shadow .2s;
+  }
   .add-row input::placeholder { color: var(--muted); font-weight: 400; letter-spacing: 1px; }
   .add-row input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,170,255,.1); }
-  .btn-add { background: var(--green); color: #080c10; border: none; font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800; letter-spacing: 1.5px; text-transform: uppercase; padding: 12px 22px; border-radius: 6px; cursor: pointer; transition: opacity .15s, transform .1s; white-space: nowrap; }
-  .btn-add:hover { opacity: .88; transform: translateY(-1px); }
-  .btn-add:active { transform: none; }
-  .btn-add:disabled { opacity: .4; cursor: not-allowed; transform: none; }
-  .btn-sec { background: none; border: 1px solid var(--border); color: var(--muted); font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 1px; padding: 12px 16px; border-radius: 6px; cursor: pointer; transition: border-color .2s, color .2s; white-space: nowrap; }
-  .btn-sec:hover { border-color: var(--blue); color: var(--blue); }
-  .btn-sec:disabled { opacity: .4; cursor: not-allowed; }
+  .add-row button {
+    background: var(--green); color: #080c10; border: none;
+    font-family: 'Syne', sans-serif; font-size: 12px; font-weight: 800;
+    letter-spacing: 1.5px; text-transform: uppercase;
+    padding: 12px 22px; border-radius: 6px; cursor: pointer;
+    transition: opacity .15s, transform .1s; white-space: nowrap;
+  }
+  .add-row button:hover { opacity: .88; transform: translateY(-1px); }
+  .add-row button:active { transform: none; }
+  .add-row button:disabled { opacity: .45; cursor: not-allowed; transform: none; }
   .slots { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
   .slots.full { color: var(--amber); }
+
   .err { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--red); min-height: 18px; margin-bottom: 14px; letter-spacing: .5px; }
 
-  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); gap: 18px; }
+  /* Grid */
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 18px; }
 
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 22px; position: relative; overflow: hidden; animation: slideIn .35s cubic-bezier(.16,1,.3,1); }
+  /* Cards */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 22px;
+    position: relative; overflow: hidden;
+    animation: slideIn .35s cubic-bezier(.16,1,.3,1);
+  }
   @keyframes slideIn { from{opacity:0;transform:translateY(14px) scale(.97)} to{opacity:1;transform:none} }
-  .card.up { border-color: rgba(0,245,160,.25); background: linear-gradient(135deg, var(--surface) 0%, rgba(0,245,160,.04) 100%); }
-  .card.dn { border-color: rgba(255,61,107,.2);  background: linear-gradient(135deg, var(--surface) 0%, rgba(255,61,107,.04) 100%); }
-  .glow { position: absolute; top: -60px; right: -60px; width: 160px; height: 160px; border-radius: 50%; filter: blur(55px); opacity: .1; pointer-events: none; }
+  .card.up { border-color: rgba(0,245,160,.25); background: linear-gradient(135deg,var(--surface) 0%,rgba(0,245,160,.04) 100%); }
+  .card.dn { border-color: rgba(255,61,107,.2);  background: linear-gradient(135deg,var(--surface) 0%,rgba(255,61,107,.04) 100%); }
+
+  .glow { position:absolute; top:-60px; right:-60px; width:160px; height:160px; border-radius:50%; filter:blur(55px); opacity:.1; pointer-events:none; }
   .card.up .glow { background: var(--green); }
   .card.dn .glow { background: var(--red); }
 
-  .ctop { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; }
-  .ticker { font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700; color: #fff; letter-spacing: 1px; }
-  .cname  { font-size: 11px; color: var(--muted); margin-top: 3px; max-width: 190px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .rm { background: none; border: 1px solid var(--border); color: var(--muted); width: 26px; height: 26px; border-radius: 4px; cursor: pointer; font-size: 14px; display: flex; align-items: center; justify-content: center; transition: border-color .2s, color .2s; flex-shrink: 0; }
-  .rm:hover { border-color: var(--red); color: var(--red); }
+  .ctop { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
+  .ticker { font-family:'Space Mono',monospace; font-size:18px; font-weight:700; color:#fff; letter-spacing:1px; }
+  .cname  { font-size:11px; color:var(--muted); margin-top:3px; max-width:175px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 
-  .prow { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
-  .price { font-family: 'Space Mono', monospace; font-size: 28px; font-weight: 700; color: #fff; line-height: 1; letter-spacing: -1px; transition: color .4s; }
+  .rm { background:none; border:1px solid var(--border); color:var(--muted); width:26px; height:26px; border-radius:4px; cursor:pointer; font-size:14px; display:flex; align-items:center; justify-content:center; transition:border-color .2s,color .2s; flex-shrink:0; }
+  .rm:hover { border-color:var(--red); color:var(--red); }
+
+  .prow { display:flex; align-items:flex-end; gap:10px; margin-bottom:8px; }
+  .price { font-family:'Space Mono',monospace; font-size:28px; font-weight:700; color:#fff; line-height:1; letter-spacing:-1px; transition:color .3s; }
   .price.fu { color: var(--green); }
   .price.fd { color: var(--red); }
-  .pill { display: inline-flex; align-items: center; gap: 3px; font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; padding: 3px 9px; border-radius: 4px; margin-bottom: 3px; }
-  .pill.up { background: rgba(0,245,160,.12); color: var(--green); }
-  .pill.dn { background: rgba(255,61,107,.12); color: var(--red); }
 
-  /* Performance summary row */
-  .perf-row { display: flex; gap: 5px; margin-bottom: 14px; flex-wrap: wrap; }
-  .pbadge { font-family: 'Space Mono', monospace; font-size: 9px; font-weight: 700; padding: 4px 8px; border-radius: 4px; display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 42px; }
-  .pbadge .plbl { font-size: 8px; opacity: .65; letter-spacing: .5px; }
-  .pbadge .pval { font-size: 10px; }
-  .pbadge.pup { background: rgba(0,245,160,.08); color: var(--green); border: 1px solid rgba(0,245,160,.18); }
-  .pbadge.pdn { background: rgba(255,61,107,.08); color: var(--red);   border: 1px solid rgba(255,61,107,.18); }
-  .pbadge.pna { background: rgba(74,104,120,.08); color: var(--muted); border: 1px solid var(--border); }
-  /* Highlight badge matching active range */
-  .pbadge.active-range { outline: 1px solid var(--blue); outline-offset: 1px; }
+  .pill { display:inline-flex; align-items:center; gap:3px; font-family:'Space Mono',monospace; font-size:11px; font-weight:700; padding:3px 9px; border-radius:4px; margin-bottom:3px; }
+  .pill.up { background:rgba(0,245,160,.12); color:var(--green); }
+  .pill.dn { background:rgba(255,61,107,.12); color:var(--red); }
 
-  .meta { display: flex; gap: 16px; margin-bottom: 14px; flex-wrap: wrap; }
-  .mi { display: flex; flex-direction: column; gap: 2px; }
-  .ml { font-family: 'Space Mono', monospace; font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
-  .mv { font-family: 'Space Mono', monospace; font-size: 12px; color: var(--text); }
+  .meta { display:flex; gap:16px; margin-bottom:16px; flex-wrap:wrap; }
+  .mi   { display:flex; flex-direction:column; gap:2px; }
+  .ml   { font-family:'Space Mono',monospace; font-size:9px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); }
+  .mv   { font-family:'Space Mono',monospace; font-size:12px; color:var(--text); }
 
-  .chart-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-  .chart-range-lbl { font-family: 'Space Mono', monospace; font-size: 9px; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
-  .chart-perf { font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; }
-  .chart-perf.up { color: var(--green); }
-  .chart-perf.dn { color: var(--red); }
-  .cwrap { height: 86px; position: relative; }
-  .cwrap canvas { width: 100% !important; }
+  .cwrap { height:68px; position:relative; }
+  .cwrap canvas { width:100%!important; }
 
-  .loading-card { display: flex; align-items: center; justify-content: center; gap: 10px; padding: 30px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-family: 'Space Mono', monospace; font-size: 12px; color: var(--muted); letter-spacing: 1px; }
-  .spinner { width: 16px; height: 16px; border: 2px solid var(--border); border-top-color: var(--green); border-radius: 50%; animation: spin .7s linear infinite; }
-  @keyframes spin { to{ transform: rotate(360deg); } }
+  .loading-card { display:flex; align-items:center; justify-content:center; gap:10px; padding:30px; background:var(--surface); border:1px solid var(--border); border-radius:10px; font-family:'Space Mono',monospace; font-size:12px; color:var(--muted); letter-spacing:1px; }
+  .spinner { width:16px; height:16px; border:2px solid var(--border); border-top-color:var(--green); border-radius:50%; animation:spin .7s linear infinite; }
+  @keyframes spin { to{transform:rotate(360deg)} }
 
-  .empty { grid-column: 1/-1; text-align: center; padding: 70px 20px; color: var(--muted); }
-  .empty .ico { font-size: 48px; margin-bottom: 14px; opacity: .35; }
-  .empty h2  { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
-  .empty p   { font-family: 'Space Mono', monospace; font-size: 12px; }
+  .empty { grid-column:1/-1; text-align:center; padding:70px 20px; color:var(--muted); }
+  .empty .ico { font-size:48px; margin-bottom:14px; opacity:.35; }
+  .empty h2  { font-size:18px; font-weight:600; color:var(--text); margin-bottom:6px; }
+  .empty p   { font-family:'Space Mono',monospace; font-size:12px; }
 
-  .footer { text-align: center; font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); margin-top: 40px; letter-spacing: .5px; line-height: 2; }
-  .footer a { color: var(--blue); text-decoration: none; }
+  .footer { text-align:center; font-family:'Space Mono',monospace; font-size:11px; color:var(--muted); margin-top:40px; letter-spacing:.5px; line-height:1.8; }
+  .footer a { color:var(--blue); text-decoration:none; }
+  .footer a:hover { text-decoration:underline; }
 
-  @media (max-width: 580px) {
-    .grid { grid-template-columns: 1fr; }
-    .add-row input { width: 100%; }
+  @media (max-width:560px) {
+    .grid { grid-template-columns:1fr; }
+    .add-row input { width:100%; }
   }
 </style>
 </head>
@@ -141,17 +191,19 @@
 
   <header>
     <div class="logo">STONKS<span>.</span></div>
-    <div class="live-badge"><div class="dot"></div><span>ALPHA VANTAGE</span></div>
+    <div class="live-badge"><div class="dot"></div><span>LIVE TRACKING</span></div>
   </header>
 
-  <div class="key-banner" id="key-banner">
-    <div class="key-label" id="key-label">⚡ API KEY REQUIRED</div>
-    <input id="key-input" type="text" placeholder="Paste your free Alpha Vantage API key…" />
-    <button class="key-btn" id="key-btn" onclick="saveKey()">Save Key</button>
+  <div class="key-banner" id="keyBanner">
+    <div class="key-label" id="keyLabel">⚡ Finnhub API Key Required</div>
+    <input type="text" id="keyInput" placeholder="Paste your free Finnhub API key here…" autocomplete="off" />
+    <button onclick="saveKey()">Save Key</button>
+    <div class="key-active-msg" id="keyActiveMsg">✓ KEY ACTIVE — Ready to track stocks</div>
     <div class="key-hint">
-      Free key at <a href="https://www.alphavantage.co/support/#api-key" target="_blank">alphavantage.co</a> — 30 seconds, no card needed.
-      Adding a stock uses 2 calls (quote + full history). Refreshing uses 1 call per stock. Free tier: 25 calls/day, resets at midnight.
-      Your key is stored in this browser only — never sent anywhere except Alpha Vantage.
+      Get a free key in 30 seconds: <a href="https://finnhub.io" target="_blank">finnhub.io</a>
+      → Register → Dashboard → copy your API Key &nbsp;·&nbsp;
+      Free tier: 60 calls/min &nbsp;·&nbsp;
+      Your key is saved in <strong>your browser only</strong> (localStorage) and is never sent anywhere except directly to Finnhub.
     </div>
   </div>
 
@@ -162,22 +214,12 @@
     <div class="sep">|</div>
     <div>LAST REFRESH <span class="v" id="lr">—</span></div>
     <div class="sep">|</div>
-    <div>API CALLS TODAY <span class="v calls-ok" id="calls-el">25 / 25</span></div>
-  </div>
-
-  <div class="range-bar">
-    <span class="range-label">CHART VIEW:</span>
-    <button class="range-btn active" onclick="setRange('1D',this)">1D</button>
-    <button class="range-btn"        onclick="setRange('1W',this)">1W</button>
-    <button class="range-btn"        onclick="setRange('1M',this)">1M</button>
-    <button class="range-btn"        onclick="setRange('6M',this)">6M</button>
-    <button class="range-btn"        onclick="setRange('1Y',this)">1Y</button>
+    <div>DATA <span class="v" style="color:var(--amber)">FINNHUB.IO</span></div>
   </div>
 
   <div class="add-row">
-    <input id="inp" type="text" maxlength="10" placeholder="Ticker (e.g. PLTR)" autocomplete="off" />
-    <button class="btn-add" id="addbtn" onclick="addStock()">+ Add Stock</button>
-    <button class="btn-sec" id="refbtn" onclick="refreshAll()">↻ Refresh All</button>
+    <input type="text" id="inp" maxlength="10" placeholder="Ticker (e.g. PLTR)" autocomplete="off" />
+    <button id="addbtn" onclick="addStock()">+ Add Stock</button>
     <div class="slots" id="slots">0 / 6 slots used</div>
   </div>
   <div class="err" id="err"></div>
@@ -186,177 +228,245 @@
     <div class="empty">
       <div class="ico">📈</div>
       <h2>No stocks tracked yet</h2>
-      <p>Enter your API key above, then type a ticker and press + Add Stock</p>
+      <p>Enter your Finnhub API key above, then type a ticker to get started</p>
     </div>
   </div>
 
   <div class="footer">
-    Data by <a href="https://www.alphavantage.co" target="_blank">Alpha Vantage</a>
-    &nbsp;·&nbsp; Free tier: 25 API calls / day &nbsp;·&nbsp; Adding a stock costs 2 calls &nbsp;·&nbsp; Refreshing costs 1 per stock
+    Data by <a href="https://finnhub.io" target="_blank">Finnhub.io</a> &nbsp;·&nbsp;
+    Free tier: 60 calls/min &nbsp;·&nbsp; Auto-refreshes every 60s &nbsp;·&nbsp; Max 6 stocks
   </div>
+
 </div>
-
 <script>
-// ─────────────────────────────────────────────────────
-//  Config & constants
-// ─────────────────────────────────────────────────────
-const MAX         = 6;
-const DAILY_LIMIT = 25;
-const AV_BASE     = 'https://www.alphavantage.co/query';
-const SK_KEY      = 'stonks_key';
-const SK_CALLS    = 'stonks_calls';
-const SK_TICKERS  = 'stonks_tickers';
+const MAX = 6;
+const BASE = 'https://finnhub.io/api/v1';
+let stocks = [];
+let API_KEY = localStorage.getItem('fh_key') || '';
+let refreshTimer = null;
 
-const RANGES = {
-  '1D': { label: '1 Day',    days: 1   },
-  '1W': { label: '1 Week',   days: 7   },
-  '1M': { label: '1 Month',  days: 30  },
-  '6M': { label: '6 Months', days: 182 },
-  '1Y': { label: '1 Year',   days: 365 },
-};
-
-// ─────────────────────────────────────────────────────
-//  State
-// ─────────────────────────────────────────────────────
-let activeRange = '1D';
-let stocks      = [];
-let apiKey      = localStorage.getItem(SK_KEY) || '';
-
-// ─────────────────────────────────────────────────────
-//  API call budget (resets daily)
-// ─────────────────────────────────────────────────────
-function todayStr() { return new Date().toISOString().slice(0, 10); }
-
-function getCallData() {
-  try {
-    const d = JSON.parse(localStorage.getItem(SK_CALLS) || '{}');
-    if (d.date === todayStr()) return d;
-  } catch(e) {}
-  return { date: todayStr(), count: 0 };
-}
-
-function recordCalls(n) {
-  const d = getCallData();
-  d.count += n;
-  localStorage.setItem(SK_CALLS, JSON.stringify(d));
-  updateCallDisplay();
-}
-
-function callsLeft() {
-  return Math.max(0, DAILY_LIMIT - getCallData().count);
-}
-
-function updateCallDisplay() {
-  const rem = callsLeft();
-  const el  = document.getElementById('calls-el');
-  el.textContent = rem + ' / ' + DAILY_LIMIT;
-  el.className   = 'v ' + (rem > 10 ? 'calls-ok' : rem > 0 ? 'calls-low' : 'calls-out');
-}
-
-// ─────────────────────────────────────────────────────
-//  API key management
-// ─────────────────────────────────────────────────────
+// ── Key management ──────────────────────────────────
 function saveKey() {
-  const v = document.getElementById('key-input').value.trim();
+  const v = document.getElementById('keyInput').value.trim();
   if (!v) return setErr('Please paste a valid API key.');
-  apiKey = v;
-  localStorage.setItem(SK_KEY, v);
-  document.getElementById('key-input').value = '';
+  API_KEY = v;
+  localStorage.setItem('fh_key', v);
+  applyKeyUI(true);
   setErr('');
-  updateKeyBanner();
 }
 
-function updateKeyBanner() {
-  if (!apiKey) return;
-  const banner = document.getElementById('key-banner');
-  const label  = document.getElementById('key-label');
-  const inp    = document.getElementById('key-input');
-  const btn    = document.getElementById('key-btn');
-  banner.classList.add('ok');
-  label.textContent = '✓ API KEY ACTIVE';
-  inp.style.display = 'none';
-  btn.textContent   = 'Change Key';
-  btn.onclick = () => {
-    inp.style.display = '';
-    inp.focus();
-    btn.textContent = 'Save Key';
-    btn.onclick = saveKey;
-  };
+function applyKeyUI(active) {
+  const banner = document.getElementById('keyBanner');
+  const label  = document.getElementById('keyLabel');
+  const msg    = document.getElementById('keyActiveMsg');
+  const inp    = document.getElementById('keyInput');
+  const btn    = document.querySelector('.key-banner button');
+  if (active) {
+    banner.classList.add('active');
+    label.textContent  = '✓ Finnhub API Key';
+    msg.style.display  = 'inline';
+    inp.style.display  = 'none';
+    btn.style.display  = 'none';
+  }
 }
 
-// ─────────────────────────────────────────────────────
-//  Alpha Vantage API helpers
-// ─────────────────────────────────────────────────────
-async function avFetch(params) {
-  const qs  = new URLSearchParams({ ...params, apikey: apiKey });
-  const res = await fetch(AV_BASE + '?' + qs);
-  if (!res.ok) throw new Error('HTTP ' + res.status);
-  const json = await res.json();
-  if (json['Note'] || json['Information']) throw new Error('RATE_LIMIT');
-  return json;
-}
+// ── Finnhub — plain GET, token as URL param (CORS-safe) ──
+async function fetchQuote(ticker) {
+  if (!API_KEY) throw new Error('NO_KEY');
+  const sym = encodeURIComponent(ticker.toUpperCase());
+  const tok = encodeURIComponent(API_KEY);
 
-async function fetchGlobalQuote(ticker) {
-  const json = await avFetch({ function: 'GLOBAL_QUOTE', symbol: ticker });
-  const q = json['Global Quote'];
-  if (!q || !q['05. price'] || parseFloat(q['05. price']) === 0)
-    throw new Error('NOT_FOUND');
-  const price     = parseFloat(q['05. price']);
-  const prevClose = parseFloat(q['08. previous close']);
-  const change    = parseFloat(q['09. change']);
-  const rawPct    = (q['10. change percent'] || '0%').replace('%', '');
+  const [qRes, pRes] = await Promise.all([
+    fetch(`${BASE}/quote?symbol=${sym}&token=${tok}`),
+    fetch(`${BASE}/stock/profile2?symbol=${sym}&token=${tok}`)
+  ]);
+
+  if (!qRes.ok) throw new Error('HTTP ' + qRes.status);
+  const q = await qRes.json();
+
+  if (!q || !q.c || q.c === 0) throw new Error('Not found');
+
+  const p         = pRes.ok ? await pRes.json() : {};
+  const price     = q.c;
+  const prevClose = q.pc || price;
+  const change    = q.d  != null ? q.d  : price - prevClose;
+  const changePct = q.dp != null ? q.dp : (change / prevClose) * 100;
+
+  // Intraday candles for sparkline
+  const now  = Math.floor(Date.now() / 1000);
+  const from = now - 28800;
+  let history = [];
+  try {
+    const cRes = await fetch(`${BASE}/stock/candle?symbol=${sym}&resolution=5&from=${from}&to=${now}&token=${tok}`);
+    const c = await cRes.json();
+    if (c.s === 'ok' && Array.isArray(c.c)) {
+      history = c.c.map((v, i) => ({ t: c.t[i], v }));
+    }
+  } catch (_) {}
+
+  if (history.length < 4) {
+    history = buildFallback(q.o || prevClose, q.l || price * 0.995, q.h || price * 1.005, price);
+  }
+
   return {
-    ticker:    q['01. symbol'],
-    price,
-    change,
-    changePct: parseFloat(rawPct),
-    open:      parseFloat(q['02. open'])    || price,
-    high:      parseFloat(q['03. high'])    || price,
-    low:       parseFloat(q['04. low'])     || price,
-    volume:    parseInt(q['06. volume'], 10) || 0,
-    prevClose,
+    ticker:    ticker.toUpperCase(),
+    name:      p.name || ticker.toUpperCase(),
+    price, change, changePct,
+    open:   q.o || prevClose,
+    high:   q.h || price,
+    low:    q.l || price,
+    volume: q.v || 0,
+    history: history.slice(-60),
   };
 }
 
-async function fetchDailyHistory(ticker) {
-  // outputsize=full gives up to 20 years; covers all our timeframes
-  const json = await avFetch({ function: 'TIME_SERIES_DAILY', symbol: ticker, outputsize: 'full' });
-  const series = json['Time Series (Daily)'];
-  if (!series) throw new Error('NOT_FOUND');
-  // Sort oldest → newest
-  return Object.entries(series)
-    .map(([date, v]) => ({ date, close: parseFloat(v['4. close']) }))
-    .sort((a, b) => a.date.localeCompare(b.date));
+function buildFallback(open, low, high, close) {
+  const pts = 40; const arr = []; let v = open;
+  for (let i = 0; i < pts; i++) {
+    v = open + (close - open) * (i / (pts - 1)) + (Math.random() - 0.5) * (high - low) * 0.25;
+    arr.push({ t: i, v: Math.max(low, Math.min(high, v)) });
+  }
+  arr[arr.length - 1].v = close;
+  return arr;
 }
 
-// ─────────────────────────────────────────────────────
-//  History helpers
-// ─────────────────────────────────────────────────────
-function sliceForRange(history, range) {
-  if (!history || history.length === 0) return [];
-  if (range === '1D') return history.slice(-2); // yesterday + today = today's move
-  const cutoff = new Date();
-  cutoff.setDate(cutoff.getDate() - RANGES[range].days);
-  const cutStr = cutoff.toISOString().slice(0, 10);
-  const sliced = history.filter(p => p.date >= cutStr);
-  return sliced.length >= 2 ? sliced : history.slice(-2);
-}
-
-function calcPerf(history, range) {
-  const slice = sliceForRange(history, range);
-  if (slice.length < 2) return null;
-  const first = slice[0].close;
-  const last  = slice[slice.length - 1].close;
-  return ((last - first) / first) * 100;
-}
-
-// ─────────────────────────────────────────────────────
-//  Add stock (2 API calls)
-// ─────────────────────────────────────────────────────
+// ── Add stock ───────────────────────────────────────
 async function addStock() {
   const inp    = document.getElementById('inp');
   const ticker = inp.value.trim().toUpperCase();
-  if (!ticker)                              return setErr('Please enter a ticker symbol.');
-  if (!apiKey)                              return setErr('Please enter your Alpha Vantage API key first.');
-  if (stocks.length >= MAX)                 return setErr('Maximum of 6 stocks reached.');
-  if (stocks.f
+  if (!ticker)                 return setErr('Please enter a ticker symbol.');
+  if (!API_KEY)                return setErr('Please enter your Finnhub API key first.');
+  if (stocks.length >= MAX)    return setErr('Maximum of 6 stocks reached.');
+  if (stocks.find(s => s.ticker === ticker)) return setErr(ticker + ' is already tracked.');
+
+  setErr(''); inp.value = '';
+  document.getElementById('addbtn').disabled = true;
+  hideEmpty();
+  addLoadingCard(ticker);
+
+  try {
+    const quote = await fetchQuote(ticker);
+    stocks.push({ ...quote, id: 'card-' + ticker, chart: null });
+    renderCard(quote);
+    updateUI();
+  } catch(e) {
+    removeEl('card-' + ticker);
+    if (e.message === 'NO_KEY')    setErr('Please enter your Finnhub API key above first.');
+    else if (e.message === 'Not found') setErr('"' + ticker + '" not found. Check the symbol — e.g. AAPL, PLTR, NVDA, BRK.B');
+    else                           setErr('Error fetching "' + ticker + '": ' + e.message);
+    if (stocks.length === 0) showEmpty();
+  } finally {
+    document.getElementById('addbtn').disabled = false;
+  }
+}
+
+function addLoadingCard(ticker) {
+  const d = document.createElement('div');
+  d.id = 'card-' + ticker; d.className = 'loading-card';
+  d.innerHTML = '<div class="spinner"></div><span>FETCHING ' + ticker + '…</span>';
+  document.getElementById('grid').appendChild(d);
+}
+
+function renderCard(quote) {
+  const card = document.getElementById('card-' + quote.ticker);
+  if (!card) return;
+  const dir   = quote.changePct >= 0 ? 'up' : 'dn';
+  const sign  = quote.changePct >= 0 ? '+' : '';
+  const arrow = dir === 'up' ? '▲' : '▼';
+  card.className = 'card ' + dir;
+  card.innerHTML = `
+    <div class="glow"></div>
+    <div class="ctop">
+      <div>
+        <div class="ticker">${quote.ticker}</div>
+        <div class="cname" title="${quote.name}">${quote.name}</div>
+      </div>
+      <button class="rm" onclick="removeStock('${quote.ticker}')">✕</button>
+    </div>
+    <div class="prow">
+      <div class="price" id="pr-${quote.ticker}">$${fmt(quote.price)}</div>
+      <div class="pill ${dir}" id="pill-${quote.ticker}">${arrow} ${sign}${fmt(quote.change)} (${sign}${quote.changePct.toFixed(2)}%)</div>
+    </div>
+    <div class="meta">
+      <div class="mi"><div class="ml">Open</div><div class="mv">$${fmt(quote.open)}</div></div>
+      <div class="mi"><div class="ml">High</div><div class="mv">$${fmt(quote.high)}</div></div>
+      <div class="mi"><div class="ml">Low</div> <div class="mv">$${fmt(quote.low)}</div></div>
+      <div class="mi"><div class="ml">Vol</div>  <div class="mv">${fmtVol(quote.volume)}</div></div>
+    </div>
+    <div class="cwrap"><canvas id="sp-${quote.ticker}"></canvas></div>`;
+  setTimeout(() => drawSpark(quote, dir), 60);
+}
+
+function drawSpark(quote, dir) {
+  const canvas = document.getElementById('sp-' + quote.ticker);
+  if (!canvas) return;
+  const s = stocks.find(s => s.ticker === quote.ticker);
+  if (s && s.chart) s.chart.destroy();
+  const color = dir === 'up' ? '#00f5a0' : '#ff3d6b';
+  const ctx   = canvas.getContext('2d');
+  const grad  = ctx.createLinearGradient(0, 0, 0, 68);
+  grad.addColorStop(0, dir === 'up' ? 'rgba(0,245,160,.22)' : 'rgba(255,61,107,.22)');
+  grad.addColorStop(1, 'transparent');
+  const vals = quote.history.map(h => h.v);
+  const chart = new Chart(ctx, {
+    type: 'line',
+    data: { labels: vals.map(() => ''), datasets: [{ data: vals, borderColor: color, borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: grad, tension: 0.4 }] },
+    options: { responsive: true, maintainAspectRatio: false, animation: { duration: 700 }, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
+  });
+  if (s) s.chart = chart;
+}
+
+function removeStock(ticker) {
+  const idx = stocks.findIndex(s => s.ticker === ticker);
+  if (idx === -1) return;
+  if (stocks[idx].chart) stocks[idx].chart.destroy();
+  stocks.splice(idx, 1);
+  const el = document.getElementById('card-' + ticker);
+  if (el) { el.style.cssText += 'opacity:0;transform:scale(.94);transition:all .18s;'; setTimeout(() => el.remove(), 200); }
+  updateUI();
+  if (stocks.length === 0) showEmpty();
+}
+
+async function refreshAll() {
+  for (const s of stocks) {
+    try {
+      const q = await fetchQuote(s.ticker);
+      const prEl = document.getElementById('pr-' + s.ticker);
+      if (prEl && q.price !== s.price) {
+        const cls = q.price > s.price ? 'fu' : 'fd';
+        prEl.classList.add(cls); setTimeout(() => prEl.classList.remove(cls), 900);
+      }
+      Object.assign(s, q); renderCard(s);
+    } catch (_) {}
+  }
+  document.getElementById('lr').textContent = new Date().toLocaleTimeString();
+}
+
+function updateUI() {
+  const n = stocks.length;
+  document.getElementById('tc').textContent = n + '/6';
+  const sl = document.getElementById('slots');
+  sl.textContent = n + ' / 6 slots used';
+  sl.className = 'slots' + (n >= MAX ? ' full' : '');
+  clearInterval(refreshTimer);
+  if (n > 0) {
+    refreshTimer = setInterval(refreshAll, 60000);
+    document.getElementById('lr').textContent = new Date().toLocaleTimeString();
+  }
+}
+
+function showEmpty() { const g = document.getElementById('grid'); if (!g.querySelector('.empty')) g.innerHTML = '<div class="empty"><div class="ico">📈</div><h2>No stocks tracked yet</h2><p>Enter your Finnhub API key above, then type a ticker to get started</p></div>'; }
+function hideEmpty() { const e = document.querySelector('.empty'); if (e) e.remove(); }
+function removeEl(id) { const e = document.getElementById(id); if (e) e.remove(); }
+function setErr(m) { document.getElementById('err').textContent = m; }
+function fmt(n) { return n == null ? '—' : n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+function fmtVol(v) { if (!v) return '—'; if (v >= 1e9) return (v/1e9).toFixed(1)+'B'; if (v >= 1e6) return (v/1e6).toFixed(1)+'M'; if (v >= 1e3) return (v/1e3).toFixed(1)+'K'; return v; }
+
+setInterval(() => { document.getElementById('clk').textContent = new Date().toLocaleTimeString(); }, 1000);
+document.getElementById('clk').textContent = new Date().toLocaleTimeString();
+document.getElementById('inp').addEventListener('keydown', e => { if (e.key === 'Enter') addStock(); });
+document.getElementById('keyInput').addEventListener('keydown', e => { if (e.key === 'Enter') saveKey(); });
+if (API_KEY) applyKeyUI(true);
+</script>
+</body>
+</html>
