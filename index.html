@@ -99,6 +99,18 @@
   .mbar .v { color: var(--text); }
   .mbar .sep { color: var(--border); }
 
+  /* Controls (Filter) */
+  .controls { display: flex; align-items: center; gap: 14px; margin-bottom: 20px; flex-wrap: wrap; }
+  .c-label { font-family: 'Space Mono', monospace; font-size: 11px; color: var(--muted); letter-spacing: 1px; }
+  .tabs { display: flex; background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 4px; }
+  .tab { 
+    background: transparent; color: var(--muted); border: none; padding: 6px 14px; 
+    font-family: 'Space Mono', monospace; font-size: 11px; font-weight: 700; cursor: pointer; border-radius: 4px;
+    transition: all .2s;
+  }
+  .tab:hover { color: var(--text); }
+  .tab.active { background: var(--border); color: var(--text); }
+
   /* Add row */
   .add-row { display: flex; gap: 10px; margin-bottom: 8px; align-items: center; flex-wrap: wrap; }
   .add-row input {
@@ -203,7 +215,7 @@
       Get a free key in 30 seconds: <a href="https://finnhub.io" target="_blank">finnhub.io</a>
       → Register → Dashboard → copy your API Key &nbsp;·&nbsp;
       Free tier: 60 calls/min &nbsp;·&nbsp;
-      Your key is saved in <strong>your browser only</strong> (localStorage) and is never sent anywhere except directly to Finnhub.
+      Your key is saved in <strong>your browser only</strong> (localStorage).
     </div>
   </div>
 
@@ -223,6 +235,17 @@
     <div class="slots" id="slots">0 / 6 slots used</div>
   </div>
   <div class="err" id="err"></div>
+
+  <div class="controls" id="controls" style="display: none;">
+    <div class="c-label">SORT & VIEW:</div>
+    <div class="tabs">
+      <button class="tab active" data-tf="1D">1D</button>
+      <button class="tab" data-tf="1W">1W</button>
+      <button class="tab" data-tf="1M">1M</button>
+      <button class="tab" data-tf="6M">6M</button>
+      <button class="tab" data-tf="1Y">1Y</button>
+    </div>
+  </div>
 
   <div class="grid" id="grid">
     <div class="empty">
@@ -244,6 +267,7 @@ const BASE = 'https://finnhub.io/api/v1';
 let stocks = [];
 let API_KEY = localStorage.getItem('fh_key') || '';
 let refreshTimer = null;
+let currentFilter = '1D';
 
 // ── Key management ──────────────────────────────────
 function saveKey() {
@@ -270,15 +294,22 @@ function applyKeyUI(active) {
   }
 }
 
-// ── Finnhub — plain GET, token as URL param (CORS-safe) ──
+// ── Finnhub API Engine ────────────────────────────────
 async function fetchQuote(ticker) {
   if (!API_KEY) throw new Error('NO_KEY');
   const sym = encodeURIComponent(ticker.toUpperCase());
   const tok = encodeURIComponent(API_KEY);
 
-  const [qRes, pRes] = await Promise.all([
+  const to = Math.floor(Date.now() / 1000);
+  const from1Y = to - (365 * 86400);
+
+  // Isolate daily fetch so if it fails, the whole app doesn't crash
+  const dReq = fetch(`${BASE}/stock/candle?symbol=${sym}&resolution=D&from=${from1Y}&to=${to}&token=${tok}`).catch(() => null);
+
+  const [qRes, pRes, dRes] = await Promise.all([
     fetch(`${BASE}/quote?symbol=${sym}&token=${tok}`),
-    fetch(`${BASE}/stock/profile2?symbol=${sym}&token=${tok}`)
+    fetch(`${BASE}/stock/profile2?symbol=${sym}&token=${tok}`),
+    dReq
   ]);
 
   if (!qRes.ok) throw new Error('HTTP ' + qRes.status);
@@ -286,27 +317,59 @@ async function fetchQuote(ticker) {
 
   if (!q || !q.c || q.c === 0) throw new Error('Not found');
 
-  const p         = pRes.ok ? await pRes.json() : {};
+  const p = pRes.ok ? await pRes.json() : {};
+  let d = {};
+  if (dRes && dRes.ok) d = await dRes.json().catch(() => ({}));
+
   const price     = q.c;
   const prevClose = q.pc || price;
   const change    = q.d  != null ? q.d  : price - prevClose;
   const changePct = q.dp != null ? q.dp : (change / prevClose) * 100;
 
-  // Intraday candles for sparkline
-  const now  = Math.floor(Date.now() / 1000);
-  const from = now - 28800;
-  let history = [];
+  // Intraday (1D) history
+  let history1D = [];
   try {
-    const cRes = await fetch(`${BASE}/stock/candle?symbol=${sym}&resolution=5&from=${from}&to=${now}&token=${tok}`);
+    const cRes = await fetch(`${BASE}/stock/candle?symbol=${sym}&resolution=5&from=${to - 28800}&to=${to}&token=${tok}`);
     const c = await cRes.json();
-    if (c.s === 'ok' && Array.isArray(c.c)) {
-      history = c.c.map((v, i) => ({ t: c.t[i], v }));
-    }
+    if (c.s === 'ok' && Array.isArray(c.c)) history1D = c.c.map((v, i) => ({ t: c.t[i], v }));
   } catch (_) {}
 
-  if (history.length < 4) {
-    history = buildFallback(q.o || prevClose, q.l || price * 0.995, q.h || price * 1.005, price);
+  if (history1D.length < 4) {
+    history1D = buildFallback(q.o || prevClose, q.l || price * 0.995, q.h || price * 1.005, price);
   }
+
+  // Daily (1Y) history
+  let historyDaily = [];
+  if (d && d.s === 'ok' && Array.isArray(d.c)) {
+    historyDaily = d.c.map((v, i) => ({ t: d.t[i], v }));
+  }
+
+  // Find exact price from X days ago to build performance logic
+  const getHistPrice = (days) => {
+    if (!historyDaily.length) return price;
+    const target = to - (days * 86400);
+    let best = historyDaily[0].v;
+    let minD = Math.abs(historyDaily[0].t - target);
+    for (let i = 1; i < historyDaily.length; i++) {
+      const diff = Math.abs(historyDaily[i].t - target);
+      if (diff < minD) { minD = diff; best = historyDaily[i].v; }
+      else break; 
+    }
+    return best;
+  };
+
+  const p1W = getHistPrice(7);
+  const p1M = getHistPrice(30);
+  const p6M = getHistPrice(180);
+  const p1Y = getHistPrice(365);
+
+  const perf = {
+    '1D': changePct,
+    '1W': ((price - p1W) / p1W) * 100,
+    '1M': ((price - p1M) / p1M) * 100,
+    '6M': ((price - p6M) / p6M) * 100,
+    '1Y': ((price - p1Y) / p1Y) * 100
+  };
 
   return {
     ticker:    ticker.toUpperCase(),
@@ -316,7 +379,9 @@ async function fetchQuote(ticker) {
     high:   q.h || price,
     low:    q.l || price,
     volume: q.v || 0,
-    history: history.slice(-60),
+    history1D: history1D.slice(-60),
+    historyDaily,
+    perf
   };
 }
 
@@ -330,7 +395,7 @@ function buildFallback(open, low, high, close) {
   return arr;
 }
 
-// ── Add stock ───────────────────────────────────────
+// ── App Logic ───────────────────────────────────────
 async function addStock() {
   const inp    = document.getElementById('inp');
   const ticker = inp.value.trim().toUpperCase();
@@ -347,12 +412,12 @@ async function addStock() {
   try {
     const quote = await fetchQuote(ticker);
     stocks.push({ ...quote, id: 'card-' + ticker, chart: null });
-    renderCard(quote);
+    applyFilter();
     updateUI();
   } catch(e) {
     removeEl('card-' + ticker);
     if (e.message === 'NO_KEY')    setErr('Please enter your Finnhub API key above first.');
-    else if (e.message === 'Not found') setErr('"' + ticker + '" not found. Check the symbol — e.g. AAPL, PLTR, NVDA, BRK.B');
+    else if (e.message === 'Not found') setErr('"' + ticker + '" not found. Check the symbol.');
     else                           setErr('Error fetching "' + ticker + '": ' + e.message);
     if (stocks.length === 0) showEmpty();
   } finally {
@@ -370,10 +435,17 @@ function addLoadingCard(ticker) {
 function renderCard(quote) {
   const card = document.getElementById('card-' + quote.ticker);
   if (!card) return;
-  const dir   = quote.changePct >= 0 ? 'up' : 'dn';
-  const sign  = quote.changePct >= 0 ? '+' : '';
-  const arrow = dir === 'up' ? '▲' : '▼';
-  card.className = 'card ' + dir;
+  
+  // Dynamically set logic based on the selected filter
+  const pPct = quote.perf[currentFilter];
+  const pDir = pPct >= 0 ? 'up' : 'dn';
+  const pSign = pPct >= 0 ? '+' : '';
+  const pArrow = pDir === 'up' ? '▲' : '▼';
+  
+  const basePrice = currentFilter === '1D' ? (quote.price - quote.change) : (quote.price / (1 + (pPct / 100)));
+  const pChange = quote.price - basePrice;
+
+  card.className = 'card ' + pDir;
   card.innerHTML = `
     <div class="glow"></div>
     <div class="ctop">
@@ -385,7 +457,7 @@ function renderCard(quote) {
     </div>
     <div class="prow">
       <div class="price" id="pr-${quote.ticker}">$${fmt(quote.price)}</div>
-      <div class="pill ${dir}" id="pill-${quote.ticker}">${arrow} ${sign}${fmt(quote.change)} (${sign}${quote.changePct.toFixed(2)}%)</div>
+      <div class="pill ${pDir}" id="pill-${quote.ticker}">${pArrow} ${pSign}${fmt(pChange)} (${pSign}${pPct.toFixed(2)}%)</div>
     </div>
     <div class="meta">
       <div class="mi"><div class="ml">Open</div><div class="mv">$${fmt(quote.open)}</div></div>
@@ -394,26 +466,52 @@ function renderCard(quote) {
       <div class="mi"><div class="ml">Vol</div>  <div class="mv">${fmtVol(quote.volume)}</div></div>
     </div>
     <div class="cwrap"><canvas id="sp-${quote.ticker}"></canvas></div>`;
-  setTimeout(() => drawSpark(quote, dir), 60);
+  setTimeout(() => drawSpark(quote, pDir), 60);
 }
 
 function drawSpark(quote, dir) {
   const canvas = document.getElementById('sp-' + quote.ticker);
   if (!canvas) return;
   const s = stocks.find(s => s.ticker === quote.ticker);
-  if (s && s.chart) s.chart.destroy();
+  if (s && s.chart) s.chart.destroy(); 
+  
   const color = dir === 'up' ? '#00f5a0' : '#ff3d6b';
   const ctx   = canvas.getContext('2d');
   const grad  = ctx.createLinearGradient(0, 0, 0, 68);
   grad.addColorStop(0, dir === 'up' ? 'rgba(0,245,160,.22)' : 'rgba(255,61,107,.22)');
   grad.addColorStop(1, 'transparent');
-  const vals = quote.history.map(h => h.v);
+  
+  // Render the specific timeframe's history on the sparkline
+  let vals = [];
+  if (currentFilter === '1D') {
+    vals = quote.history1D.map(h => h.v);
+  } else {
+    const now = Math.floor(Date.now() / 1000);
+    const days = currentFilter === '1W' ? 7 : currentFilter === '1M' ? 30 : currentFilter === '6M' ? 180 : 365;
+    const cutoff = now - (days * 86400);
+    vals = quote.historyDaily.filter(h => h.t >= cutoff).map(h => h.v);
+    if (vals.length < 2) vals = quote.history1D.map(h => h.v); // fallback safety
+  }
+
   const chart = new Chart(ctx, {
     type: 'line',
     data: { labels: vals.map(() => ''), datasets: [{ data: vals, borderColor: color, borderWidth: 2, pointRadius: 0, fill: true, backgroundColor: grad, tension: 0.4 }] },
     options: { responsive: true, maintainAspectRatio: false, animation: { duration: 700 }, plugins: { legend: { display: false }, tooltip: { enabled: false } }, scales: { x: { display: false }, y: { display: false } } }
   });
   if (s) s.chart = chart;
+}
+
+function applyFilter() {
+  stocks.sort((a, b) => b.perf[currentFilter] - a.perf[currentFilter]);
+  const grid = document.getElementById('grid');
+  stocks.forEach(s => {
+    const card = document.getElementById('card-' + s.ticker);
+    if (card) {
+      if (s.chart) { s.chart.destroy(); s.chart = null; } // Prevent ghost memory
+      grid.appendChild(card); // Reorders DOM instantly
+      renderCard(s);
+    }
+  });
 }
 
 function removeStock(ticker) {
@@ -436,9 +534,10 @@ async function refreshAll() {
         const cls = q.price > s.price ? 'fu' : 'fd';
         prEl.classList.add(cls); setTimeout(() => prEl.classList.remove(cls), 900);
       }
-      Object.assign(s, q); renderCard(s);
+      Object.assign(s, q); 
     } catch (_) {}
   }
+  applyFilter(); // Re-sorts everything after polling
   document.getElementById('lr').textContent = new Date().toLocaleTimeString();
 }
 
@@ -448,12 +547,26 @@ function updateUI() {
   const sl = document.getElementById('slots');
   sl.textContent = n + ' / 6 slots used';
   sl.className = 'slots' + (n >= MAX ? ' full' : '');
+  
+  // Show controls ONLY when tracking at least 1 stock
+  document.getElementById('controls').style.display = n > 0 ? 'flex' : 'none';
+
   clearInterval(refreshTimer);
   if (n > 0) {
     refreshTimer = setInterval(refreshAll, 60000);
     document.getElementById('lr').textContent = new Date().toLocaleTimeString();
   }
 }
+
+// Event Listeners & Bootstrapping
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', e => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    e.target.classList.add('active');
+    currentFilter = e.target.getAttribute('data-tf');
+    if (stocks.length > 0) applyFilter();
+  });
+});
 
 function showEmpty() { const g = document.getElementById('grid'); if (!g.querySelector('.empty')) g.innerHTML = '<div class="empty"><div class="ico">📈</div><h2>No stocks tracked yet</h2><p>Enter your Finnhub API key above, then type a ticker to get started</p></div>'; }
 function hideEmpty() { const e = document.querySelector('.empty'); if (e) e.remove(); }
